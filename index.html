@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ProPlanner - Task & Productivity App</title>
+    
+    <!-- Google Font: Plus Jakarta Sans for Ultra-Modern Soft Aesthetics -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js CDN for Category Donut & Daily Completion Bar Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Embedded Modern Styling -->
+    <style>
+        :root {
+            --bg-page: #eaf0f8;
+            --bg-app: #f4f7fc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --text-light: #94a3b8;
+            
+            --primary: #4361ee;
+            --primary-soft: #eef2ff;
+            --secondary: #3b82f6;
+            
+            --cat-personal: #60a5fa;
+            --cat-work: #2563eb;
+            --cat-study: #f59e0b;
+            --cat-shopping: #10b981;
+            --cat-wishlist: #ec4899;
+            
+            --radius-xl: 24px;
+            --radius-lg: 18px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+            
+            --shadow-soft: 0 10px 25px -5px rgba(67, 97, 238, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+            --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.03);
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--text-main);
+        }
+
+        .app-shell {
+            width: 100%;
+            max-width: 430px;
+            height: 100vh;
+            max-height: 900px;
+            background-color: var(--bg-app);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(30, 41, 59, 0.15);
+            overflow: hidden;
+        }
+
+        @media (min-width: 480px) {
+            .app-shell {
+                border-radius: 40px;
+                height: 93vh;
+                border: 10px solid #1e293b;
+            }
+        }
+
+        /* Top Header */
+        .app-header {
+            padding: 20px 22px 14px 22px;
+            background: linear-gradient(180deg, #ffffff 0%, var(--bg-app) 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .header-title h1 {
+            font-size: 22px;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.5px;
+        }
+
+        .header-title p {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-top: 2px;
+        }
+
+        .btn-fab-header {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 16px rgba(67, 97, 238, 0.3);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-fab-header:active {
+            transform: scale(0.92);
+        }
+
+        /* Main Body & Page Tabs */
+        .app-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 18px 90px 18px;
+            scroll-behavior: smooth;
+        }
+
+        .app-body::-webkit-scrollbar {
+            width: 0;
+        }
+
+        .tab-page {
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .tab-page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius-xl);
+            padding: 18px;
+            box-shadow: var(--shadow-card);
+            border: 1px solid rgba(226, 232, 240, 0.7);
+            margin-bottom: 16px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .card-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Stat Counter Boxes (Matching Screenshot 1) */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .stat-card {
+            background: #ffffff;
+            border-radius: var(--radius-lg);
+            padding: 18px;
+            text-align: center;
+            box-shadow: var(--shadow-card);
+            border: 1px solid #f1f5f9;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .stat-number.completed { color: var(--primary); }
+        .stat-number.pending { color: #f59e0b; }
+
+        .stat-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .task-item {
+            background: #ffffff;
+            border-radius: var(--radius-lg);
+            padding: 14px;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow-card);
+            border: 1px solid #f1f5f9;
+            transition: var(--transition);
+        }
+
+        .task-main {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .task-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .checkbox-round {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+
+        .task-item.completed .checkbox-round {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .task-title-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .task-item.completed .task-title-text {
+            text-decoration: line-through;
+            color: var(--text-light);
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 4px;
+        }
+
+        .meta-pill {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 6px;
+        }
+
+        .cat-personal { background: #dbeafe; color: var(--cat-personal); }
+        .cat-work { background: #eff6ff; color: var(--cat-work); }
+        .cat-study { background: #fef3c7; color: var(--cat-study); }
+        .cat-shopping { background: #d1fae5; color: var(--cat-shopping); }
+        .cat-wishlist { background: #fce7f3; color: var(--cat-wishlist); }
+
+        .time-pill {
+            font-size: 10px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* Subtasks Accordion */
+        .subtask-container {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #e2e8f0;
+            padding-left: 34px;
+        }
+
+        .subtask-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .subtask-checkbox {
+            width: 14px;
+            height: 14px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        .subtask-item.done {
+            text-decoration: line-through;
+            color: var(--text-light);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .calendar-month-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .cal-nav-btn {
+            background: #f1f5f9;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--text-muted);
+        }
+
+        .calendar-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .calendar-days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+        }
+
+        .day-cell {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-main);
+            cursor: pointer;
+            position: relative;
+            transition: var(--transition);
+        }
+
+        .day-cell:hover {
+            background-color: #f1f5f9;
+        }
+
+        .day-cell.other-month {
+            color: var(--text-light);
+            opacity: 0.5;
+        }
+
+        .day-cell.selected {
+            background-color: var(--primary);
+            color: white !important;
+            box-shadow: 0 6px 14px rgba(67, 97, 238, 0.35);
+        }
+
+        .day-cell.has-tasks::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            width: 4px;
+            height: 4px;
+            background-color: var(--secondary);
+            border-radius: 50%;
+        }
+
+        .day-cell.selected.has-tasks::after {
+            background-color: white;
+        }
+
+        .category-card-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .cat-list-card {
+            border-radius: var(--radius-xl);
+            padding: 16px 18px;
+            box-shadow: var(--shadow-card);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            position: relative;
+        }
+
+        .cat-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .cat-list-title {
+            font-size: 15px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checklist-items {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 8px 12px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* Form Modal */
+        .modal-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            display: none;
+            align-items: flex-end;
+            animation: fadeIn 0.2s;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            width: 100%;
+            background: white;
+            border-top-left-radius: 30px;
+            border-top-right-radius: 30px;
+            padding: 24px;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.15);
+            max-height: 85vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            font-size: 13px;
+            outline: none;
+            background: #f8fafc;
+        }
+
+        .form-input:focus, .form-select:focus {
+            border-color: var(--primary);
+            background: white;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: var(--radius-lg);
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 8px 16px rgba(67, 97, 238, 0.3);
+            margin-top: 10px;
+        }
+
+        /* Bottom Tab Navigation Bar */
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 72px;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 8px;
+            z-index: 20;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-light);
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 25%;
+            transition: var(--transition);
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-item svg {
+            width: 22px;
+            height: 22px;
+            fill: currentColor;
+        }
+
+        .btn-icon {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-icon:hover {
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Mobile Frame Shell -->
+    <div class="app-shell">
+
+        <div class="app-header">
+            <div class="header-title">
+                <h1>ProPlanner</h1>
+                <p id="headerSubtitle">Your Daily Goal Dashboard</p>
+            </div>
+            <button class="btn-fab-header" onclick="openAddTaskModal()">+</button>
+        </div>
+
+        <!-- Scrollable Tab Content Container -->
+        <div class="app-body">
+
+            <!-- PAGE 1: TASKS & DASHBOARD TAB -->
+            <div id="tab-tasks" class="tab-page active">
+                
+                <!-- Quick Date Selector Strip -->
+                <div class="card" style="padding: 12px 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 700; font-size: 13px;">Selected Date:</span>
+                        <input type="date" id="dailyDatePicker" onchange="handleDateChange()" style="border: none; background: #f1f5f9; padding: 6px 12px; border-radius: 10px; font-weight: 700; color: var(--primary); outline: none;">
+                    </div>
+                </div>
+
+                <!-- Today's Tasks List -->
+                <div class="card-header">
+                    <div class="card-title">📌 Planned Tasks</div>
+                    <span id="taskCountBadge" style="font-size: 11px; font-weight: 700; color: var(--primary); background: var(--primary-soft); padding: 4px 10px; border-radius: 12px;">0 Tasks</span>
+                </div>
+
+                <div id="dailyTaskList">
+                    <!-- Dynamic task cards render here -->
+                </div>
+
+            </div>
+
+            <!-- PAGE 2: CALENDAR VIEW TAB -->
+            <div id="tab-calendar" class="tab-page">
+                <div class="card">
+                    <div class="calendar-header">
+                        <button class="cal-nav-btn" onclick="changeMonth(-1)">‹</button>
+                        <div class="calendar-month-title" id="calMonthTitle">November 2026</div>
+                        <button class="cal-nav-btn" onclick="changeMonth(1)">›</button>
+                    </div>
+                    <div class="calendar-weekdays">
+                        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                    </div>
+                    <div class="calendar-days-grid" id="calendarGrid">
+                        <!-- Days grid dynamically generated -->
+                    </div>
+                </div>
+
+                <div class="card-title" style="margin-bottom: 12px;">Tasks for Selected Date</div>
+                <div id="calendarDayTaskList">
+                    <!-- Tasks preview for selected date -->
+                </div>
+            </div>
+
+            <!-- PAGE 3: CHECKLISTS & CATEGORIES TAB -->
+            <div id="tab-checklists" class="tab-page">
+                <div class="category-card-stack" id="categoryChecklistContainer">
+                    <!-- Dynamic Categorized lists cards -->
+                </div>
+            </div>
+
+            <!-- PAGE 4: ANALYTICS VIEW TAB (Matching Screenshots) -->
+            <div id="tab-analytics" class="tab-page">
+                
+                <!-- Stat Cards Row (88 Completed / 12 Pending style) -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number completed" id="statCompletedCount">0</div>
+                        <div class="stat-label">Completed Tasks</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number pending" id="statPendingCount">0</div>
+                        <div class="stat-label">Pending Tasks</div>
+                    </div>
+                </div>
+
+                <!-- Category Donut Chart Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Open Tasks in Categories</div>
+                        <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Overall</span>
+                    </div>
+                    <div style="position: relative; height: 180px; display: flex; justify-content: center;">
+                        <canvas id="categoryDonutChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Daily Completion Bar Chart Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Daily Task Completion</div>
+                        <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">7 Days</span>
+                    </div>
+                    <div style="position: relative; height: 180px;">
+                        <canvas id="dailyBarChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Add Task Modal Sheet -->
+        <div class="modal-overlay" id="addTaskModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-title">✨ Add New Task</div>
+                    <button class="btn-icon" onclick="closeAddTaskModal()" style="font-size: 18px;">✕</button>
+                </div>
+                <form onsubmit="handleCreateTask(event)">
+                    <div class="form-group">
+                        <label class="form-label">Task Name</label>
+                        <input type="text" id="inputTaskTitle" class="form-input" placeholder="e.g. Travel planning checklist" required>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group">
+                            <label class="form-label">Category</label>
+                            <select id="inputCategory" class="form-select">
+                                <option value="Personal">Personal 🔵</option>
+                                <option value="Work">Work 🟦</option>
+                                <option value="Study">Study List 🟡</option>
+                                <option value="Shopping">Shopping List 🟢</option>
+                                <option value="Wishlist">Wishlist 💖</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Due Date</label>
+                            <input type="date" id="inputDueDate" class="form-input" required>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group">
+                            <label class="form-label">Time</label>
+                            <input type="time" id="inputTime" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Repeat</label>
+                            <select id="inputRepeat" class="form-select">
+                                <option value="None">None</option>
+                                <option value="Daily">Daily</option>
+                                <option value="Weekly">Weekly</option>
+                                <option value="Monthly">Monthly</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Sub-Tasks (Comma Separated)</label>
+                        <input type="text" id="inputSubtasks" class="form-input" placeholder="Go to beach, Go to the mall">
+                    </div>
+                    <button type="submit" class="btn-submit">Save Goal</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Bottom Tab Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" id="navTasks" onclick="switchTab('tasks')">
+                <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                <span>Tasks</span>
+            </button>
+            <button class="nav-item" id="navCalendar" onclick="switchTab('calendar')">
+                <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg>
+                <span>Calendar</span>
+            </button>
+            <button class="nav-item" id="navChecklists" onclick="switchTab('checklists')">
+                <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+                <span>Checklists</span>
+            </button>
+            <button class="nav-item" id="navAnalytics" onclick="switchTab('analytics')">
+                <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+                <span>Analytics</span>
+            </button>
+        </nav>
+
+    </div>
+  <!-- Application Controller Logic -->
+    <script>
+        const datePicker = document.getElementById('dailyDatePicker');
+        const todayStr = new Date().toISOString().split('T')[0];
+        datePicker.value = todayStr;
+        document.getElementById('inputDueDate').value = todayStr;
+
+        let currentCalDate = new Date();
+        let selectedCalDateStr = todayStr;
+        let donutChartInstance = null;
+        let barChartInstance = null;
+
+        // Default Mock Data matching reference visuals
+        const defaultTasks = [
+            {
+                id: 101,
+                title: "Travel planning checklist 🌿",
+                category: "Personal",
+                date: todayStr,
+                time: "08:55",
+                repeat: "Monthly",
+                completed: false,
+                subtasks: [
+                    { id: 1, title: "Go to beach", done: false },
+                    { id: 2, title: "Go to the mall", done: true }
+                ]
+            },
+            {
+                id: 102,
+                title: "Have a date with Michael 📅",
+                category: "Personal",
+                date: todayStr,
+                time: "09:30",
+                repeat: "None",
+                completed: false,
+                subtasks: []
+            },
+            {
+                id: 103,
+                title: "Grandma's birthday 🎂",
+                category: "Personal",
+                date: todayStr,
+                time: "17:30",
+                repeat: "None",
+                completed: true,
+                subtasks: []
+            },
+            {
+                id: 104,
+                title: "French lesson 🌍",
+                category: "Study",
+                date: todayStr,
+                time: "11:00",
+                repeat: "Daily",
+                completed: false,
+                subtasks: []
+            },
+            {
+                id: 105,
+                title: "Tomato & Broccoli 🥦",
+                category: "Shopping",
+                date: todayStr,
+                time: "16:00",
+                repeat: "None",
+                completed: true,
+                subtasks: []
+            }
+        ];
+
+        function getDB() {
+            const data = localStorage.getItem('proplanner_v2_db');
+            if (!data) {
+                localStorage.setItem('proplanner_v2_db', JSON.stringify(defaultTasks));
+                return defaultTasks;
+            }
+            return JSON.parse(data);
+        }
+
+        function saveDB(tasks) {
+            localStorage.setItem('proplanner_v2_db', JSON.stringify(tasks));
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-page').forEach(page => page.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+
+            if (tab === 'tasks') {
+                document.getElementById('tab-tasks').classList.add('active');
+                document.getElementById('navTasks').classList.add('active');
+                document.getElementById('headerSubtitle').innerText = "Your Daily Goal Dashboard";
+                renderTasksTab();
+            } else if (tab === 'calendar') {
+                document.getElementById('tab-calendar').classList.add('active');
+                document.getElementById('navCalendar').classList.add('active');
+                document.getElementById('headerSubtitle').innerText = "Calendar & Day Planner";
+                renderCalendar();
+            } else if (tab === 'checklists') {
+                document.getElementById('tab-checklists').classList.add('active');
+                document.getElementById('navChecklists').classList.add('active');
+                document.getElementById('headerSubtitle').innerText = "Categorized Checklist Hub";
+                renderCategorizedChecklists();
+            } else if (tab === 'analytics') {
+                document.getElementById('tab-analytics').classList.add('active');
+                document.getElementById('navAnalytics').classList.add('active');
+                document.getElementById('headerSubtitle').innerText = "Performance Analytics";
+                renderAnalyticsView();
+            }
+        }
+
+        function handleDateChange() {
+            renderTasksTab();
+        }
+
+        function renderTasksTab() {
+            const selectedDate = datePicker.value;
+            const tasks = getDB().filter(t => t.date === selectedDate);
+            const container = document.getElementById('dailyTaskList');
+            container.innerHTML = '';
+
+            document.getElementById('taskCountBadge').innerText = `${tasks.length} Goals`;
+
+            if (tasks.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:40px 10px; color:var(--text-light); font-size:13px;">No tasks set for this date yet. Tap '+' above to add one!</div>`;
+                return;
+            }
+
+            tasks.forEach(task => {
+                const catClass = `cat-${task.category.toLowerCase()}`;
+                const card = document.createElement('div');
+                card.className = `task-item ${task.completed ? 'completed' : ''}`;
+                
+                let subtaskHtml = '';
+                if (task.subtasks && task.subtasks.length > 0) {
+                    subtaskHtml = `<div class="subtask-container">` + 
+                        task.subtasks.map(st => `
+                            <div class="subtask-item ${st.done ? 'done' : ''}">
+                                <input type="checkbox" class="subtask-checkbox" ${st.done ? 'checked' : ''} onclick="toggleSubtask(${task.id}, ${st.id})">
+                                <span>${escapeHtml(st.title)}</span>
+                            </div>
+                        `).join('') + `</div>`;
+                }
+card.innerHTML = `
+                    <div class="task-main">
+                        <div class="task-left">
+                            <div class="checkbox-round" onclick="toggleTask(${task.id})">
+                                ${task.completed ? '✓' : ''}
+                            </div>
+                            <div>
+                                <div class="task-title-text">${escapeHtml(task.title)}</div>
+                                <div class="task-meta">
+                                    <span class="meta-pill ${catClass}">${task.category}</span>
+                                    ${task.time ? `<span class="time-pill">⏰ ${task.time}</span>` : ''}
+                                    ${task.repeat !== 'None' ? `<span class="time-pill">🔄 ${task.repeat}</span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn-icon" onclick="deleteTask(${task.id})">✕</button>
+                    </div>
+                    ${subtaskHtml}
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function toggleTask(id) {
+            const db = getDB();
+            const task = db.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                saveDB(db);
+                renderTasksTab();
+            }
+        }
+
+        function toggleSubtask(taskId, subtaskId) {
+            const db = getDB();
+            const task = db.find(t => t.id === taskId);
+            if (task && task.subtasks) {
+                const st = task.subtasks.find(s => s.id === subtaskId);
+                if (st) st.done = !st.done;
+                saveDB(db);
+                renderTasksTab();
+            }
+        }
+
+        function deleteTask(id) {
+            let db = getDB();
+            db = db.filter(t => t.id !== id);
+            saveDB(db);
+            renderTasksTab();
+        }
+
+        function openAddTaskModal() {
+            document.getElementById('addTaskModal').classList.add('active');
+        }
+
+        function closeAddTaskModal() {
+            document.getElementById('addTaskModal').classList.remove('active');
+        }
+
+        function handleCreateTask(e) {
+            e.preventDefault();
+            const title = document.getElementById('inputTaskTitle').value.trim();
+            const category = document.getElementById('inputCategory').value;
+            const date = document.getElementById('inputDueDate').value;
+            const time = document.getElementById('inputTime').value;
+            const repeat = document.getElementById('inputRepeat').value;
+            const subtasksRaw = document.getElementById('inputSubtasks').value.trim();
+
+            let subtasks = [];
+            if (subtasksRaw) {
+                subtasks = subtasksRaw.split(',').map((st, idx) => ({
+                    id: Date.now() + idx,
+                    title: st.trim(),
+                    done: false
+                }));
+            }
+
+            const newTask = {
+                id: Date.now(),
+                title,
+                category,
+                date,
+                time,
+                repeat,
+                completed: false,
+                subtasks
+            };
+
+            const db = getDB();
+            db.push(newTask);
+            saveDB(db);
+
+            closeAddTaskModal();
+            document.getElementById('inputTaskTitle').value = '';
+            document.getElementById('inputSubtasks').value = '';
+
+            datePicker.value = date;
+            switchTab('tasks');
+        }
+
+        function renderCalendar() {
+            const year = currentCalDate.getFullYear();
+            const month = currentCalDate.getMonth();
+            
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            document.getElementById('calMonthTitle').innerText = `${monthNames[month]} ${year}`;
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+
+            const db = getDB();
+
+            // Previous month padding
+            for (let i = 0; i < firstDay; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'day-cell other-month';
+                grid.appendChild(emptyCell);
+            }
+
+            // Current month days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const hasTasks = db.some(t => t.date === dateStr);
+
+                const cell = document.createElement('div');
+                cell.className = `day-cell ${dateStr === selectedCalDateStr ? 'selected' : ''} ${hasTasks ? 'has-tasks' : ''}`;
+                cell.innerText = day;
+                cell.onclick = () => {
+                    selectedCalDateStr = dateStr;
+                    renderCalendar();
+                };
+                grid.appendChild(cell);
+            }
+
+            // Render day preview
+            const dayTasks = db.filter(t => t.date === selectedCalDateStr);
+            const previewContainer = document.getElementById('calendarDayTaskList');
+            previewContainer.innerHTML = '';
+
+            if (dayTasks.length === 0) {
+                previewContainer.innerHTML = `<div style="text-align:center; padding:18px; color:var(--text-light); font-size:12px;">No scheduled tasks for ${selectedCalDateStr}</div>`;
+            } else {
+                dayTasks.forEach(t => {
+                    const item = document.createElement('div');
+                    item.className = 'task-item';
+                    item.style.marginBottom = '8px';
+                    item.innerHTML = `
+                        <div class="task-main">
+                            <div class="task-title-text" style="font-size:13px;">${t.completed ? '✓ ' : ''}${escapeHtml(t.title)}</div>
+                            <span class="time-pill">⏰ ${t.time || 'All Day'}</span>
+                        </div>
+                    `;
+                    previewContainer.appendChild(item);
+                });
+            }
+      }
+      function changeMonth(delta) {
+            currentCalDate.setMonth(currentCalDate.getMonth() + delta);
+            renderCalendar();
+        }
+
+        function renderCategorizedChecklists() {
+            const db = getDB();
+            const categories = [
+                { name: 'Personal', color: '#dbeafe', textColor: '#1e40af', icon: '🔵' },
+                { name: 'Work', color: '#eff6ff', textColor: '#1d4ed8', icon: '🟦' },
+                { name: 'Study', color: '#fef3c7', textColor: '#b45309', icon: '🟡' },
+                { name: 'Shopping', color: '#d1fae5', textColor: '#047857', icon: '🟢' },
+                { name: 'Wishlist', color: '#fce7f3', textColor: '#be185d', icon: '💖' }
+            ];
+
+            const container = document.getElementById('categoryChecklistContainer');
+            container.innerHTML = '';
+
+            categories.forEach(cat => {
+                const catTasks = db.filter(t => t.category === cat.name);
+                
+                const card = document.createElement('div');
+                card.className = 'cat-list-card';
+                card.style.backgroundColor = cat.color;
+
+                const itemsHtml = catTasks.length > 0 ? catTasks.map(t => `
+                    <div class="checklist-item">
+                        <span>${t.completed ? '✓ ' : '⭕ '} ${escapeHtml(t.title)}</span>
+                        <span style="font-size:10px; opacity:0.7;">${t.date}</span>
+                    </div>
+                `).join('') : `<div style="font-size:12px; opacity:0.6;">No items in ${cat.name} list</div>`;
+
+                card.innerHTML = `
+                    <div class="cat-list-header">
+                        <div class="cat-list-title" style="color: ${cat.textColor}">
+                            <span>${cat.icon}</span>
+                            <span>${cat.name} List</span>
+                        </div>
+                        <span style="font-size:12px; font-weight:700; color:${cat.textColor}">${catTasks.length} Items</span>
+                    </div>
+                    <div class="checklist-items">
+                        ${itemsHtml}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderAnalyticsView() {
+            const db = getDB();
+            
+            const completedCount = db.filter(t => t.completed).length;
+            const pendingCount = db.filter(t => !t.completed).length;
+
+            document.getElementById('statCompletedCount').innerText = completedCount;
+            document.getElementById('statPendingCount').innerText = pendingCount;
+
+            // Donut Chart: Category breakdown
+            const categories = ['Personal', 'Work', 'Study', 'Shopping', 'Wishlist'];
+            const categoryCounts = categories.map(c => db.filter(t => t.category === c && !t.completed).length);
+
+            const ctxDonut = document.getElementById('categoryDonutChart').getContext('2d');
+            if (donutChartInstance) donutChartInstance.destroy();
+
+            donutChartInstance = new Chart(ctxDonut, {
+                type: 'doughnut',
+                data: {
+                    labels: categories,
+                    datasets: [{
+                        data: categoryCounts,
+                        backgroundColor: ['#60a5fa', '#2563eb', '#f59e0b', '#10b981', '#ec4899'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } }
+                    },
+                    cutout: '70%'
+                }
+            });
+
+            // Bar Chart: Daily Task Completion (Sun-Sat)
+            const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const dailyCompletions = [0, 0, 0, 0, 0, 0, 0];
+
+            db.forEach(t => {
+                if (t.completed) {
+                    const dayIdx = new Date(t.date).getDay();
+                    dailyCompletions[dayIdx]++;
+                }
+            });
+
+            const ctxBar = document.getElementById('dailyBarChart').getContext('2d');
+            if (barChartInstance) barChartInstance.destroy();
+
+            barChartInstance = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: daysOfWeek,
+                    datasets: [{
+                        label: 'Completed Tasks',
+                        data: dailyCompletions,
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 10 } } },
+                        x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>"']/g, function(m) { return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'}[m]; });
+        }
+
+        // Initialize App
+        renderTasksTab();
+    </script>
+</body>
+</html>
