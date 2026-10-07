@@ -591,8 +591,8 @@
 
         <div class="app-header">
             <div class="header-title">
-                <h1>ProPlanner</h1>
-                <p id="headerSubtitle">Your Daily Goal Dashboard</p>
+                <h1>My Daily Planner</h1>
+                <p id="headerSubtitle">Sirajul Muneer</p>
             </div>
             <button class="btn-fab-header" onclick="openAddTaskModal()">+</button>
         </div>
@@ -701,11 +701,11 @@
                         <div class="form-group">
                             <label class="form-label">Category</label>
                             <select id="inputCategory" class="form-select">
-                                <option value="Personal">Personal 🔵</option>
-                                <option value="Work">Work 🟦</option>
+                                <option value="Personal">Personal List 🔵</option>
+                                <option value="Work">Work List 🟦</option>
                                 <option value="Study">Study List 🟡</option>
                                 <option value="Shopping">Shopping List 🟢</option>
-                                <option value="Wishlist">Wishlist 💖</option>
+                                <option value="Health">Health List 💖</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -1101,7 +1101,7 @@ for (let day = 1; day <= daysInMonth; day++) {
                 { name: 'Work', color: '#eff6ff', textColor: '#1d4ed8', icon: '🟦' },
                 { name: 'Study', color: '#fef3c7', textColor: '#b45309', icon: '🟡' },
                 { name: 'Shopping', color: '#d1fae5', textColor: '#047857', icon: '🟢' },
-                { name: 'Wishlist', color: '#fce7f3', textColor: '#be185d', icon: '💖' }
+                { name: 'Health', color: '#fce7f3', textColor: '#be185d', icon: '💖' }
             ];
 
             const container = document.getElementById('categoryChecklistContainer');
