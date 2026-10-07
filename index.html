@@ -19,7 +19,22 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- Embedded Modern Styling -->
-    <style>
+  <style>
+    /* നിങ്ങളുടെ നാവിഗേഷൻ ബാറിന്റെ CSS */
+    .bottom-nav {
+      position: fixed !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      width: 100% !important;
+      z-index: 1000 !important;
+      background-color: #ffffff;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ഉള്ളടക്കം അടിയിൽ മറഞ്ഞുപോകാതിരിക്കാൻ */
+    body {
+      padding-bottom: 80px;
+    }
         :root {
             --bg-page: #eaf0f8;
             --bg-app: #f4f7fc;
@@ -780,6 +795,46 @@
     </div>
   <!-- Application Controller Logic -->
     <script>
+        document.addEventListener("DOMContentLoaded", function() {
+      const today = new Date().toDateString();
+      const lastDate = localStorage.getItem('lastOpenedDate');
+
+      if (lastDate !== today) {
+        // Daily ടാസ്കുകൾ റിസെറ്റ് ചെയ്യുന്ന ഭാഗം
+        if (typeof tasks !== 'undefined') {
+          tasks.forEach(task => {
+            if (task.isDaily || task.repeat === 'Daily') {
+              task.completed = false;
+              if (task.subtasks) {
+                task.subtasks.forEach(sub => sub.completed = false);
+              }
+            }
+          });
+          localStorage.setItem('lastOpenedDate', today);
+          // ടാസ്കുകൾ സേവ് ചെയ്യാനും സ്ക്രീനിൽ അപ്ഡേറ്റ് ചെയ്യാനുമുള്ള ഫംഗ്ഷൻ വിളിക്കുക
+          if (typeof saveTasks === 'function') saveTasks();
+          if (typeof renderTasks === 'function') renderTasks();
+        }
+      }
+
+      // Pending/Completed കാർഡുകളിൽ ക്ലിക്ക് ചെയ്യുമ്പോൾ ഫിൽട്ടർ ചെയ്യാൻ
+      const pendingCard = document.getElementById('pending-card');
+      const completedCard = document.getElementById('completed-card');
+
+      if (pendingCard) {
+        pendingCard.addEventListener('click', function() {
+          // പെൻഡിങ് ടാസ്കുകൾ മാത്രം കാണിക്കാനുള്ള ഫംഗ്ഷൻ ഇവിടെ നൽകാം
+          filterTasks('pending');
+        });
+      }
+
+      if (completedCard) {
+        completedCard.addEventListener('click', function() {
+          // കംപ്ലീറ്റ് ആയ ടാസ്കുകൾ മാത്രം കാണിക്കാനുള്ള ഫംഗ്ഷൻ ഇവിടെ നൽകാം
+          filterTasks('completed');
+        });
+      }
+    });
         const datePicker = document.getElementById('dailyDatePicker');
         const todayStr = new Date().toISOString().split('T')[0];
         datePicker.value = todayStr;
