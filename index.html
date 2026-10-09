@@ -454,19 +454,17 @@
         .modal-overlay.active {
             display: flex;
         }
-
-        .modal-content {
-            width: 100%;
-            background: white;
-            border-top-left-radius: 30px;
-            border-top-right-radius: 30px;
-            padding: 24px;
-            box-shadow: 0 -10px 30px rgba(0,0,0,0.15);
-            max-height: 85vh;
-            overflow-y: auto;
-            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+.modal-content {
+    width: 100%;
+    background: white;
+    border-top-left-radius: 30px;
+    border-top-right-radius: 30px;
+    padding: 24px 24px 100px 24px; /* അടിയിൽ 100px പෑഡിങ് നൽകിയതിനാൽ Save ബട്ടൺ എപ്പോഴും വ്യക്തമായി കാണാം */
+    box-shadow: 0 -10px 30px rgba(0,0,0,0.15);
+    max-height: 80vh; /* സ്ക്രീനിന്റെ 80% ഉയരം മാത്രം */
+    overflow-y: auto;  /* ഫോമിലെ ബാക്കി ഭാഗങ്ങൾ താഴേക്ക് സ്ക്രോൾ ചെയ്ത് കാണാൻ */
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
-
         @keyframes slideUp {
             from { transform: translateY(100%); }
             to { transform: translateY(0); }
